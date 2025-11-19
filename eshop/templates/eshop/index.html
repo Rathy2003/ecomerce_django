@@ -1,0 +1,172 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+
+{% block title %}
+Home -
+{% endblock %}
+
+{% block content %}
+	<section id="slider"><!--slider-->
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-12">
+					<div id="slider-carousel" class="carousel slide" data-ride="carousel">
+						<ol class="carousel-indicators">
+                            {% for i in slider_list %}
+                            	<li data-target="#slider-carousel" data-slide-to="{{ forloop.counter0 }}" class="{% if forloop.counter0 == 0 %}active{% endif %}"></li>
+                            {% endfor %}
+						</ol>
+						
+						<div class="carousel-inner">
+                            {% for slider in slider_list %}
+                                <div class="item {% if forloop.counter == 1 %}active{% endif %}">
+                                    <div class="col-sm-6">
+                                        <h1>{{ slider.title }}</h1>
+                                        <p>{{ slider.description }}</p>
+                                        <a href="{{ slider.link }}" class="btn btn-default get">Get it now</a>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <img src="/media/sliders/{{ slider.img }}" class="girl img-responsive" alt="{{ slider.title }}" />
+                                    </div>
+                                </div>
+                            {% endfor %}
+						</div>
+						
+						<a href="#slider-carousel" class="left control-carousel hidden-xs" data-slide="prev">
+							<i class="fa fa-angle-left"></i>
+						</a>
+						<a href="#slider-carousel" class="right control-carousel hidden-xs" data-slide="next">
+							<i class="fa fa-angle-right"></i>
+						</a>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+	</section><!--/slider-->
+	
+	<section>
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-3">
+					<div class="left-sidebar">
+						<h2>Category</h2>
+						<div class="panel-group category-products" id="accordian"><!--category-productsr-->
+                            {# Start Category List #}
+                            {% for category in category_list %}
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a>
+                                                <span class="badge pull-right"><i class="fa fa-angle-right"></i></span>
+                                               {{ category.name }}
+                                            </a>
+                                        </h4>
+                                    </div>
+							    </div>
+							{% endfor %}
+                            {# End Category List #}
+						</div><!--/category-products-->
+					
+						<div class="brands_products"><!--brands_products-->
+							<h2>Brands</h2>
+							<div class="brands-name">
+								<ul class="nav nav-pills nav-stacked">
+                                    {# Start Brand List #}
+									{% for brand in brand_list %}
+                                        <li>
+                                            <a href="{% url 'shop_by_brand' brand.name %}"> <span class="pull-right">({{ brand.total_product }})</span>{{ brand.name }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    {# End Brand List #}
+								</ul>
+							</div>
+						</div><!--/brands_products-->
+					
+					</div>
+				</div>
+				
+				<div class="col-sm-9 padding-right">
+					<div class="features_items"><!--features_items-->
+						<h2 class="title text-center">Features Items</h2>
+						{% for product in feature_product_list %}
+							<div class="col-sm-4">
+								<div class="product-image-wrapper">
+									<div class="single-products">
+											<div class="productinfo text-center">
+												 {% for image in product.images %}
+													{% if image.is_thumbnail and image.is_thumbnail == 1 %}
+														<img style="aspect-ratio: 1/1;object-fit: cover" src="/media/products/{{ image.path }}" alt="{{ product.title }}">
+													{% endif %}
+												{% endfor %}
+												<h2>${{product.price}}</h2>
+												<p>{{ product.name }}</p>
+												<button data-id="{{ product.id }}" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+											</div>
+											<div class="product-overlay">
+												<div class="overlay-content">
+													<h2>${{product.price}}</h2>
+													<p>{{ product.name }}</p>
+													<button data-id="{{ product.id }}" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+												</div>
+											</div>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
+					</div><!--features_items-->
+					
+					<div class="category-tab"><!--category-tab-->
+						<div class="col-sm-12">
+							<ul class="nav nav-tabs">
+								{% for category in category_list %}
+                                    <li class="{% if forloop.counter == 1  %}active{% endif %}"><a href="#{{ category.id }}" data-toggle="tab">{{ category.name }}</a></li>
+                                {% endfor %}
+							</ul>
+						</div>
+						<div class="tab-content">
+							{% for item in product_list_by_category %}
+                            <div class="tab-pane fade active in" id="{{ item.category.id }}" >
+								{% for product_item in item.product %}
+                                    <div class="col-sm-3">
+                                        <div class="product-image-wrapper">
+                                            <div class="single-products">
+                                                <div class="productinfo text-center">
+                                                    {% for image in product_item.images %}
+                                                        {% if image.is_thumbnail and image.is_thumbnail == 1 %}
+                                                            <img style="aspect-ratio: 1/1;object-fit: cover" src="/media/products/{{ image.path }}" alt="{{ product.title }}">
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <h2>${{ product_item.price }}</h2>
+                                                    <p>{{ product_item.name }}</p>
+                                                    <button data-id="{{ product_item.id }}" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+							</div>
+                            {% endfor %}
+						</div>
+					</div><!--/category-tab-->
+				</div>
+			</div>
+		</div>
+	</section>
+
+{% endblock %}
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            {#  Add To Cart  #}
+            $(document).on('click', '.add-to-cart',async function (event) {
+                event.preventDefault();
+                const productId = $(this).attr('data-id');
+                const userId = "{{ request.session.client_user_id }}"
+                await addToCart(userId,productId).then((response) => {
+                    console.log(response);
+                })
+            })
+        })
+    </script>
+{% endblock %}

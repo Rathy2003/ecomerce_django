@@ -1,0 +1,203 @@
+{% extends "eshop/base.html" %} {% block content %}
+    <section id="cart_items">
+        <div class="container">
+            <div class="breadcrumbs">
+                <ol class="breadcrumb">
+                    <li><a href="#">Home</a></li>
+                    <li class="active">Shopping Cart</li>
+                </ol>
+            </div>
+            {% if cart_item|length > 0 %}
+                <div class="table-responsive cart_info">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr class="cart_menu">
+                            <td class="image">Item</td>
+                            <td class="description"></td>
+                            <td class="price">Price</td>
+                            <td class="quantity">Quantity</td>
+                            <td class="total">Total</td>
+                            <td></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for cart in cart_item %}
+                            <tr>
+                                <td class="cart_product">
+                                    <a href="">
+                                        {% for image in cart.product.images %}
+                                            {% if image.is_thumbnail and image.is_thumbnail == 1 %}
+                                                <img style="height: 100px" src="/media/products/{{ image.path }}" alt="{{ product.title }}">
+                                            {% endif %}
+                                        {% endfor %}
+                                    </a>
+                                </td>
+                                <td class="cart_description">
+                                    <h4><a href="">{{ cart.product.name }}</a></h4>
+                                </td>
+                                <td class="cart_price">
+                                    <p>${{ cart.price }}</p>
+                                </td>
+                                <td class="cart_quantity">
+                                    <div class="cart_quantity_button">
+                                        <a style="cursor: pointer" type="button" data-id="{{ cart.id }}" class="cart_quantity_up"> + </a>
+                                        <input
+                                                class="cart_quantity_input"
+                                                type="text"
+                                                name="quantity"
+                                                value="{{ cart.quantity }}"
+                                                autocomplete="off"
+                                                size="2"
+                                        />
+                                        <a style="cursor: pointer" type="button" data-quantity="{{ cart.quantity }}" data-id="{{ cart.id }}" class="cart_quantity_down"> - </a>
+                                    </div>
+                                </td>
+                                <td class="cart_total">
+                                    <p class="cart_total_price">${% widthratio cart.price 1 cart.quantity %}</p>
+                                </td>
+                                <td class="cart_delete">
+                                    <button data-id="{{ cart.id }}" class="cart_quantity_delete"><i class="fa fa-times"></i></button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <br/>
+                <div class="text-center">
+                    <h4>No, Item has been added to cart.</h4>
+                    <a href="{% url 'shop' %}" class="btn btn-default get">Go Shopping Now</a>
+                </div>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            {% endif %}
+        </div>
+    </section>
+    <!--/#cart_items-->
+{% endblock %}
+
+{% block script %}
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    <script>
+    $(document).ready(function(){
+
+        const removeCart = (cartId) => {
+            const csrftoken = getCookie('csrftoken');
+            $.ajax({
+                url: "{% url 'remove-cart' %}",
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                data:{
+                    "cartId": cartId,
+                    "userId": "{{ request.session.client_user_id }}",
+                },
+                dataType: 'json',
+                success: function (res) {
+                    Swal.fire({
+                      title: "Cart has been deleted!",
+                      icon: "success",
+                      allowOutsideClick:false,
+                      allowEscapeKey:false,
+                      confirmButtonText: "Close",
+                    }).then((result) => {
+                      /* Read more about isConfirmed, isDenied below */
+                      if (result.isConfirmed) {
+                          window.location.reload();
+                      }
+                    });
+                }
+            })
+        }
+
+        $(document).on("click",".cart_quantity_delete",function (evt){
+            const cartId = $(this).attr("data-id");
+            Swal.fire({
+              title: "Are you sure to delete this cart?",
+              text: "It will not be able to revert this!",
+              icon: "question",
+              allowOutsideClick:false,
+              allowEscapeKey:false,
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                removeCart(cartId)
+              }else if(result.isDismissed){
+                  //console.log("Cancelled")
+              }
+            });
+        })
+
+        // increase quantity
+        $(document).on("click",".cart_quantity_up",function (evt){
+            const csrftoken = getCookie('csrftoken');
+            const cartId = $(this).attr("data-id");
+            $.ajax({
+                url: "{% url 'decrease-increase-quantity' %}",
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                data:{
+                    "cartId": cartId,
+                    "isIncrease":true
+                },
+                success: function (res) {
+                    window.location.reload();
+                }
+            })
+        })
+        // decrease quantity
+        $(document).on("click",".cart_quantity_down",function (evt){
+            const csrftoken = getCookie('csrftoken');
+            const cartId = $(this).attr("data-id");
+            const quantity = $(this).attr("data-quantity");
+            if((quantity - 1) < 1){
+                Swal.fire({
+                    title: "Are you sure to delete this cart?",
+                    text: "It will not be able to revert this!",
+                    icon: "question",
+                    allowOutsideClick:false,
+                    allowEscapeKey:false,
+                    confirmButtonText: "Yes",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        removeCart(cartId)
+                    }
+                })
+                return
+            }
+
+            $.ajax({
+                url: "{% url 'decrease-increase-quantity' %}",
+                type: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                data:{
+                    "cartId": cartId,
+                    "isDecrease":true
+                },
+                success: function (res) {
+                    window.location.reload();
+                }
+            })
+        })
+    })
+    </script>
+{% endblock %}

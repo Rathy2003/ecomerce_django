@@ -1,0 +1,96 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+
+{% block style %}
+    <style>
+        .order-card{
+            border-radius: 5px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            padding: 16px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <section id="cart_items">
+        <div class="container">
+            <div class="breadcrumbs">
+                <ol class="breadcrumb" style="margin-bottom: 20px">
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li class="active">Order</li>
+                </ol>
+            </div>
+
+            {% if order_list|length > 0 %}
+                <div style="display: flex;flex-direction: column; gap: 25px">
+                    {% for order in order_list %}
+                      <div class="row order-card">
+                        <div class="row col-12 shadow-sm">
+                            <div class="col-md-4">
+                                <h5>ORDER ID: </h5>
+                                <h6>#{{ forloop.counter|stringformat:"03d" }}</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>ORDER DATE: </h5>
+                                <h6>{{ order.createdAt|date:"D, d-m-Y h:i a" }}</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <h5>STATUS: </h5>
+                                {% if order.status.value == 'pending' %}
+                                    <span style="text-transform: capitalize;padding: 7px 15px;" class="badge">
+                                        {{ order.status.value }}
+                                    </span>
+                                {% elif order.status.value == 'preparing' %}
+                                    <span style="text-transform: capitalize;padding: 7px 15px;background: #fd7e14" class="badge">
+                                        {{ order.status.value }}
+                                    </span>
+                                {% else %}
+                                    <span style="text-transform: capitalize;padding: 7px 15px;background: #198754" class="badge">
+                                        {{ order.status.value }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr class="hr">
+                        <div class="col-12">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in order.product_list %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>${{ item.price }}</td>
+                                        <td>${% widthratio item.price 1 item.quantity %}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                      </div>
+                    {% endfor %}
+                </div>
+                <br/>
+                <br/>
+                <br/>
+            {% else %}
+                <br/>
+                <div class="text-center">
+                    <h4>No, Order Item.</h4>
+                    <a href="{% url 'shop' %}" class="btn btn-default get">Go Shopping Now</a>
+                </div>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

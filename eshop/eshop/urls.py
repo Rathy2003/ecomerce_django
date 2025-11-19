@@ -1,0 +1,57 @@
+"""
+URL configuration for eshop project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+from eshop import views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+urlpatterns = [
+    # client
+    path('',views.index, name='index'),
+    path('contact-us', views.contact_us, name='contact-us'),
+    path('shop/brand/<str:brand_name>',views.shop_by_brand,name='shop_by_brand'),
+    path('shop/category/<str:category_name>',views.shop_by_category,name='shop_by_category'),
+    path('shop', views.shop, name='shop'),
+    path('product-details', views.product_details, name='product-details'),
+    path('checkout', views.check_out, name='check-out'),
+    path('process-checkout', views.process_checkout, name='process-checkout'),
+    path('order',views.order_view, name='order'),
+    path('login', views.login, name='login'),
+    path('error-404', views.error_404, name='error-404'),
+    path('cart', views.cart, name='cart'),
+
+    path('admin/', admin.site.urls),
+    path('process-signup/', views.process_signup, name='process-signup'),
+    path('process-signin/', views.process_signin, name='process-signin'),
+    path('process_signout/', views.process_signout, name='process-signout'),
+    path('results',views.search_result_view, name='search_result_view'),
+    # end client
+
+    # dashboard
+    path('ecadmin/',include('dashboard.urls')),
+
+    # API
+    path('api/add-to-cart', views.add_to_cart, name='add-to-cart'),
+    path('api/remove-cart', views.remove_cart, name='remove-cart'),
+    path('api/decrease-increase-quantity',views.decrease_increase_quantity, name='decrease-increase-quantity'),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

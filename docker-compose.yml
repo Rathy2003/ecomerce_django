@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: eshop-app-container
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    volumes:
+      - ./eshop/media:/app/media
+    networks:
+      - sample_app_network
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./eshop/media:/app/media
+    depends_on:
+      - app
+    networks:
+      - sample_app_network
+
+  mongodb:
+    image: mongo:latest
+    container_name: sample-mongodb
+    ports:
+      - "27019:27017"
+    env_file:
+      - .env 
+    volumes:
+      - mongodb:/data/db
+    restart: unless-stopped
+    networks:
+      - sample_app_network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: sample-mongo-express
+    restart: unless-stopped
+    networks:
+      - sample_app_network
+    ports:
+      - "8081:8081"  
+    depends_on:
+      - mongodb
+    environment:
+      ME_CONFIG_MONGODB_SERVER: "mongodb"
+      ME_CONFIG_BASICAUTH_USER: ${ME_USER}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_PASSWORD}
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+volumes:
+  app_uploads:
+  mongodb:
+
+networks:
+  sample_app_network:
+    driver: bridge

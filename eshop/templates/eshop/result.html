@@ -1,0 +1,84 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+
+{% block content %}
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="features_items"><h2 class="title text-center">Result for: {{ query }}</h2>
+                        {% if page_obj.object_list|length > 0 %}
+                            <div class="row col-12">
+                                {% for product in page_obj.object_list %}
+                                    <div class="col-sm-4">
+                                        <div class="product-image-wrapper">
+                                            <div class="single-products">
+                                                <div class="productinfo text-center">
+                                                    {% for image in product.images %}
+                                                        {% if image.is_thumbnail and image.is_thumbnail == 1 %}
+                                                            <img style="aspect-ratio: 1/1;object-fit: cover" src="/media/products/{{ image.path }}" alt="{{ product.title }}">
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <h2>${{ product.price }}</h2>
+                                                    <p>{{ product.name }}</p>
+                                                    <a href="#" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+                                                </div>
+                                                <div class="product-overlay">
+                                                    <div class="overlay-content">
+                                                        <h2>${{ product.price }}</h2>
+                                                        <p>{{ product.name }}</p>
+                                                        <a data-id="{{ product.id }}" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="height: 82px">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
+                                <h3>Product not found.</h3>
+                            </div>
+                            <br/>
+                            <br/>
+                        {% endif %}
+                        
+                        {% if total_pages|length > 1 %}
+                             <ul class="pagination">
+                                 {% if page_obj.has_previous %}
+                                     <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+                                 {% endif %}
+
+                                {% for _ in total_pages %}
+                                    <li class="{% if page_obj.number  == forloop.counter %}active{% endif %}"><a href="?page={{ forloop.counter }}" href="">{{ forloop.counter }}</a></li>
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+                                {% endif %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            {#  Add To Cart  #}
+            $(document).on('click', '.add-to-cart',async function (event) {
+                event.preventDefault();
+                const productId = $(this).attr('data-id');
+                const userId = "{{ request.session.client_user_id }}"
+                await addToCart(userId,productId)
+            })
+        })
+    </script>
+{% endblock %}

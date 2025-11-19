@@ -1,0 +1,249 @@
+{% extends 'ecadmin/base.html' %}
+
+{% load static %}
+
+{% block styles %}
+    <style>
+        #slider-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+
+            .slider-card {
+                padding: 15px;
+                border-radius: 10px;
+                display: flex;
+                align-items: start;
+                gap: 15px;
+                box-shadow: 0 0 3px #ddd;
+                position: relative;
+
+                & > #slider-img > img {
+                    width: 300px;
+                    object-fit: contain;
+                }
+
+                & > #slider-information {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+
+                & #slider-move-wrapper {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    right: 25px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 25px;
+                    width: 200px;
+
+                    & button {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        cursor: pointer;
+                        background: transparent;
+                        border: 1px solid black;
+                        border-radius: 10px;
+                        transition: all ease-in-out 200ms;
+                        padding: 5px 5px;
+
+                        &:disabled {
+                            cursor: not-allowed;
+                        }
+
+                        &:not(:disabled) {
+                            &:hover {
+                                background: black;
+                                color: white;
+                            }
+                        }
+
+                        & > svg {
+                            height: 40px;
+                        }
+                    }
+                }
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block title %}
+    <h3>Slider Listing</h3>
+    <a href="{% url 'dashboard.slider.create' %}" class="btn btn-outline-primary">New Slider</a>
+{% endblock %}
+
+{% block content %}
+    {# Start Delete Modal #}
+    <div class="col-12">
+        <div class="modal fade" id="delete-slider-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Delete Confirmation</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <form id="delete-slider-frm" action="{% url 'dashboard.slider.delete' %}" method="POST">
+                      {% csrf_token %}
+                      <input type="hidden" name="slider_id" id="slider-id">
+                  </form>
+                <div class="d-flex gap-2 align-items-center">
+                    <svg style="height: 100px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <h6>Are you sure to delete this slider? it cannot undo.</h6>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" form="delete-slider-frm" class="btn btn-danger">Yes, Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    {# End Delete Modal #}
+
+    {#  Start Slider Listing  #}
+    {% if page_obj.object_list|length > 0 %}
+        <div class="col-12">
+            <table class="table table-striped table-hover">
+                <thead class="table-secondary">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Link</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slider in page_obj.object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <img style="width: 80px" src="/media/sliders/{{ slider.img }}" alt="{{ slider.title }}">
+                            </td>
+                            <td>{{ slider.title }}</td>
+                            <td>{{ slider.link }}</td>
+                            <td>{{ slider.description }}</td>
+                            <td>
+                                {% if slider.status == 1 %}
+                                    <span class="badge text-bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge text-bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 align-items-center justify-content-center">
+                                    <button class="delete-slider-btn btn btn-outline-danger" data-id="{{ slider.id }}" data-bs-toggle="modal" data-bs-target="#delete-slider-modal">
+                                        <i class="align-middle" data-feather="trash"></i>
+                                    </button>
+                                    <a class="btn btn-outline-success" href="{% url 'dashboard.slider.edit' slider_id=slider.id %}">
+                                         <i class="align-middle" data-feather="edit"></i>
+                                    </a>
+                                    <a href="{% url 'dashboard.slider.toggle-status' slider_id=slider.id %}" class="btn btn-outline-success">
+                                        {% if slider.status == 1 %}
+                                            <i class="align-middle" data-feather="eye-off"></i>
+                                        {% else %}
+                                            <i class="align-middle" data-feather="eye"></i>
+                                        {% endif %}
+                                    </a>
+                                    <form class="d-flex gap-1 flex-column"  action="{% url 'dashboard.slider_move' id=slider.id %}" method="POST">
+                                        {% csrf_token %}
+                                        {% if slider.order == 1 %}
+                                            <button disabled type="submit" name="move_up" class="btn btn-outline-primary">
+                                                <i class="align-middle" data-feather="arrow-up"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" name="move_up" class="btn btn-outline-primary">
+                                                <i class="align-middle" data-feather="arrow-up"></i>
+                                            </button>
+                                        {% endif %}
+
+                                        {% if slider.order == page_obj.object_list|length %}
+                                            <button type="submit" name="move_down" class="btn btn-outline-primary" disabled>
+                                                <i class="align-middle" data-feather="arrow-down"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" name="move_down" class="btn btn-outline-primary">
+                                                <i class="align-middle" data-feather="arrow-down"></i>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {# Start Pagination #}
+            <nav class="mt-5">
+              <ul class="pagination">
+                <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                  {% if page_obj.has_previous %}
+                      <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                  {% else %}
+                      <a class="page-link" href="#">Previous</a>
+                  {% endif %}
+                </li>
+                {% for _ in total_pages %}
+                    <li class="page-item {% if page_obj.number  == forloop.counter %}active{% endif %}">
+                        <a class="page-link" href="?page={{ forloop.counter }}">{{ forloop.counter }}</a>
+                    </li>
+                {% endfor %}
+                <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                  {% if page_obj.has_next %}
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                  {% else %}
+                      <a class="page-link" href="#">Next</a>
+                  {% endif %}
+                </li>
+              </ul>
+            </nav>
+            {# End Pagination #}
+        </div>
+    {% endif %}
+    {#  End Slider Listing  #}
+
+    {#  Start No Record Message  #}
+    {% if page_obj.object_list|length <= 0 %}
+        <div class="col-12">
+            <div
+                class="d-flex flex-column"
+                style="position: absolute;top: 50%;left: 50%;transform: translate(-50%,-50%);"
+            >
+                <svg style="height: 90px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                </svg>
+                <p class="mt-2">No sliders have been added yet.</p>
+            </div>
+        </div>
+    {% endif %}
+    {#  End No Record Message  #}
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const sliderIdInput = document.getElementById('slider-id');
+
+    document.querySelectorAll(".delete-slider-btn").forEach((el) => {
+        el.addEventListener('click', (e) => {
+            const sliderId = e.currentTarget.dataset.id;
+            console.log(sliderId);
+            sliderIdInput.value = sliderId;
+        })
+    })
+})
+</script>
+{% endblock %}

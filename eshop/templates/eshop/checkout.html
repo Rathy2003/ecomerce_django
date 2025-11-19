@@ -1,0 +1,329 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+
+{% block content %}
+    <section id="cart_items">
+        <div class="container">
+            <div class="breadcrumbs">
+                <ol class="breadcrumb">
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li class="active">Check out</li>
+                </ol>
+            </div>
+
+            {% if cart_item|length > 0 %}
+                <div class="shopper-informations">
+                    <div class="row">
+                        <div class="col-sm-6 clearfix">
+                            <p>Bill To</p>
+                            <div class="form-one" style="width: 100%">
+                                <form id="bill-to-frm">
+                                    <input type="text" name="firstname" placeholder="First Name *">
+                                    <input type="text" name="lastname" placeholder="Last Name *">
+                                    <input type="text" name="email" placeholder="Email*">
+                                    <input type="text" name="tel" placeholder="Phone Number *">
+                                    <input type="text" name="address" placeholder="Address 1 *">
+                                    <input type="text" name="address_2" placeholder="Address 2">
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="order-message">
+                                <p>Shipping Order</p>
+                                <textarea id="shipping_note" style="height: 282px" name="message" placeholder="Notes about your order, Special Notes for Delivery"
+                                          rows="8"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 text-center">
+                            <a href="{% url 'shop' %}" class="btn btn-default">Continue Shopping</a>
+                            &nbsp;&nbsp;&nbsp;
+                            <button id="checkout-btn" class="btn btn-primary" style="margin-top: 0" disabled>Process Checkout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-payment">
+                    <h2>Review & Payment</h2>
+                </div>
+                <div class="table-responsive cart_info">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr class="cart_menu">
+                            <td class="image">Item</td>
+                            <td class="description"></td>
+                            <td class="price">Price</td>
+                            <td class="quantity">Quantity</td>
+                            <td class="total">Total</td>
+                            <td></td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for cart in cart_item %}
+                            <tr>
+                                <td class="cart_product">
+                                    <a href="">
+                                        {% for image in cart.product.images %}
+                                            {% if image.is_thumbnail and image.is_thumbnail == 1 %}
+                                                <img style="height: 100px" src="/media/products/{{ image.path }}"
+                                                     alt="{{ product.title }}">
+                                            {% endif %}
+                                        {% endfor %}
+                                    </a>
+                                </td>
+                                <td class="cart_description">
+                                    <h4><a href="">{{ cart.product.name }}</a></h4>
+                                </td>
+                                <td class="cart_price">
+                                    <p>${{ cart.price }}</p>
+                                </td>
+                                <td class="cart_quantity">
+                                    <div class="cart_quantity_button">
+                                        <a style="cursor: pointer" type="button" data-id="{{ cart.id }}"
+                                           class="cart_quantity_up"> + </a>
+                                        <input
+                                                class="cart_quantity_input"
+                                                type="text"
+                                                name="quantity"
+                                                value="{{ cart.quantity }}"
+                                                autocomplete="off"
+                                                size="2"
+                                        />
+                                        <a style="cursor: pointer" type="button" data-quantity="{{ cart.quantity }}"
+                                           data-id="{{ cart.id }}" class="cart_quantity_down"> - </a>
+                                    </div>
+                                </td>
+                                <td class="cart_total">
+                                    <p class="cart_total_price">${% widthratio cart.price 1 cart.quantity %}</p>
+                                </td>
+                                <td class="cart_delete">
+                                    <button data-id="{{ cart.id }}" class="cart_quantity_delete"><i
+                                            class="fa fa-times"></i></button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                            <td colspan="2">
+                                <table class="table table-condensed total-result">
+                                    <tr>
+                                        <td>Cart Sub Total</td>
+                                        <td>${{ total }}</td>
+                                    </tr>
+                                    <tr class="shipping-cost">
+                                        <td>Shipping Cost</td>
+                                        <td>Free</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total</td>
+                                        <td><span>${{ total }}</span></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <br/>
+                <div class="text-center">
+                    <h4>No, Product to checkout.</h4>
+                    <a href="{% url 'shop' %}" class="btn btn-default get">Go Shopping Now</a>
+                </div>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
+
+
+{% block script %}
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            const $billToInput = $("#bill-to-frm input");
+            const $checkoutButton = $("#checkout-btn");
+            function checkInputs() {
+                let allFilled = true;
+                $billToInput.each(function () {
+                    if ($(this).val().trim() === "") {
+                        allFilled = false;
+                        return false;
+                    }
+                })
+                $checkoutButton.attr("disabled", !allFilled);
+            }
+            $billToInput.on("keyup change", checkInputs);
+            const removeCart = (cartId) => {
+                const csrftoken = getCookie('csrftoken');
+                $.ajax({
+                    url: "{% url 'remove-cart' %}",
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        "cartId": cartId,
+                        "userId": "{{ request.session.user_id }}",
+                    },
+                    dataType: 'json',
+                    success: function (res) {
+                        Swal.fire({
+                            title: "Cart has been deleted!",
+                            icon: "success",
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            confirmButtonText: "Close",
+                        }).then((result) => {
+                            /* Read more about isConfirmed, isDenied below */
+                            if (result.isConfirmed) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                })
+            }
+
+            $(document).on("click", ".cart_quantity_delete", function (evt) {
+                const cartId = $(this).attr("data-id");
+                Swal.fire({
+                    title: "Are you sure to delete this cart?",
+                    text: "It will not be able to revert this!",
+                    icon: "question",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        removeCart(cartId)
+                    } else if (result.isDismissed) {
+                        //console.log("Cancelled")
+                    }
+                });
+            })
+
+            // increase quantity
+            $(document).on("click", ".cart_quantity_up", function (evt) {
+                const csrftoken = getCookie('csrftoken');
+                const cartId = $(this).attr("data-id");
+                $.ajax({
+                    url: "{% url 'decrease-increase-quantity' %}",
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        "cartId": cartId,
+                        "isIncrease": true
+                    },
+                    success: function (res) {
+                        window.location.reload();
+                    }
+                })
+            })
+            // decrease quantity
+            $(document).on("click", ".cart_quantity_down", function (evt) {
+                const csrftoken = getCookie('csrftoken');
+                const cartId = $(this).attr("data-id");
+                const quantity = $(this).attr("data-quantity");
+                if ((quantity - 1) < 1) {
+                    Swal.fire({
+                        title: "Are you sure to delete this cart?",
+                        text: "It will not be able to revert this!",
+                        icon: "question",
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        confirmButtonText: "Yes",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            removeCart(cartId)
+                        }
+                    })
+                    return
+                }
+
+                $.ajax({
+                    url: "{% url 'decrease-increase-quantity' %}",
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        "cartId": cartId,
+                        "isDecrease": true
+                    },
+                    success: function (res) {
+                        window.location.reload();
+                    }
+                })
+            })
+
+            // process checkout
+            $checkoutButton.on("click", function (evt) {
+                const $form = $("#bill-to-frm")
+                const firstName = $form.find('input[name="firstname"]').val();
+                const lastName = $form.find('input[name="lastname"]').val();
+                const email = $form.find('input[name="email"]').val();
+                const phone = $form.find('input[name="tel"]').val();
+                const address = $form.find('input[name="address"]').val();
+                const address2 = $form.find('input[name="address_2"]').val();
+                const shippingNotes = $("#shipping_note").val()
+
+
+                $.ajax({
+                    url: "{% url 'process-checkout' %}",
+                    type: 'POST',
+                    headers: {'X-CSRFToken': csrftoken},
+                    data:{
+                        "firstName": firstName,
+                        "lastName": lastName,
+                        "email": email,
+                        "phone": phone,
+                        "address": address,
+                        "address_2": address2,
+                        "shippingNotes": shippingNotes,
+                    },
+                    success: function (res) {
+                        if(res.status === "success"){
+                            Swal.fire({
+                              title: "Your Order has been saved.!",
+                              icon: "success",
+                              allowOutsideClick:false,
+                              allowEscapeKey:false,
+                              confirmButtonText: "Close",
+                            }).then((result) => {
+                              /* Read more about isConfirmed, isDenied below */
+                              if (result.isConfirmed) {
+                                  window.location.reload();
+                              }
+                            });
+                        }
+                    },
+                    error: function (err) {
+                         Swal.fire({
+                              title: "Something went wrong!. Please try again later!",
+                              icon: "error",
+                              allowOutsideClick:false,
+                              allowEscapeKey:false,
+                              confirmButtonText: "OK",
+                            })
+                    }
+                })
+            })
+
+        })
+    </script>
+{% endblock %}
