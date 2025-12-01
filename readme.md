@@ -1,5 +1,21 @@
 <center><h1><u>ONE NIGHT STORE</u></h1></center>
 
+
+## Project Screenshot
+<div style="display: flex;flex-wrap: wrap;gap: 10px">
+  <img width="280" src="https://i.imgur.com/Yz7OMAz.jpeg"/>
+  <img width="280" src="https://i.imgur.com/zcdUv8s.jpeg"/>
+  <img width="280" src="https://i.imgur.com/QIBwb79.jpeg"/>
+  <img width="280" src="https://i.imgur.com/Wd02pKy.jpeg"/>
+  <img width="280" src="https://i.imgur.com/DV1qvAi.jpeg"/>
+  <img width="280" src="https://i.imgur.com/xaQbXmX.jpeg"/>
+  <img width="280" src="https://i.imgur.com/4Jn5XYD.jpeg"/>
+  <img width="280" src="https://i.imgur.com/vb2Ku2l.jpeg"/>
+  <img width="280" src="https://i.imgur.com/QLx6a5p.jpeg"/>
+  <img width="280" src="https://i.imgur.com/2rgkBOD.jpeg"/>
+  <img width="280" src="https://i.imgur.com/m1q2uCZ.jpeg"/>
+</div>
+
 ## Project Propose
 ___
 - config static to dynamic site with django framework
@@ -31,6 +47,7 @@ ___
 - Backend
   - Django Framework: ```version 5.2.6```
 - Deployment: ```Docker``` with ```AWS EC2```
+
 ## Demo
 ___
 - client: http://eshopper188.duckdns.org/
